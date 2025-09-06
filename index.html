@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudflare Pro</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            text-align: center;
+            color: #404245;
+        }
+        .container {
+            background-color: #fff;
+            padding: 35px;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #2c2d2f;
+            font-size: 22px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        p {
+            color: #4a4c4f;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 12px 0;
+        }
+        .cloudflare-logo {
+            margin-top: 25px;
+            opacity: 0.85;
+            transition: opacity 0.3s;
+        }
+        .cloudflare-logo:hover {
+            opacity: 1;
+        }
+        .challenge-box {
+            border: 1px solid #e6e7e8;
+            padding: 24px;
+            margin: 25px 0;
+            border-radius: 8px;
+            background: #fafbfc;
+            position: relative;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .challenge-box:hover {
+            border-color: #d9dbe0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-container input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e0;
+            border-radius: 4px;
+            margin-right: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+            background-color: white;
+        }
+        .checkbox-container input[type="checkbox"]:checked {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+        .checkbox-container input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 4px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .checkbox-container input[type="checkbox"]:hover {
+            border-color: #2563eb;
+        }
+        .checkbox-container label {
+            font-size: 15px;
+            color: #2d3748;
+            font-weight: 500;
+        }
+        .loading-spinner {
+            border: 2px solid rgba(37, 99, 235, 0.1);
+            border-top: 2px solid #2563eb;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            margin: 12px auto;
+            opacity: 0.9;
+        }
+        .progress-bar {
+            height: 3px;
+            background: #e2e8f0;
+            border-radius: 1.5px;
+            margin: 12px 0;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #2563eb;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+        }
+        .verification-steps {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 12px;
+            text-align: left;
+            display: none;
+            padding: 0 4px;
+        }
+        .verification-step {
+            margin: 6px 0;
+            display: flex;
+            align-items: center;
+            opacity: 0.85;
+            transition: opacity 0.3s;
+        }
+        .verification-step:has(.step-dot.active),
+        .verification-step:has(.step-dot.complete) {
+            opacity: 1;
+        }
+        .step-dot {
+            width: 6px;
+            height: 6px;
+            background: #cbd5e0;
+            border-radius: 50%;
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+        .step-dot.active {
+            background: #2563eb;
+        }
+        .step-dot.complete {
+            background: #48bb78;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .progress-bar {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            margin: 15px 0;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: #2563eb;
+            width: 0%;
+            transition: width 2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #verificationStatus {
+            font-size: 14px;
+            margin-top: 12px;
+            font-weight: 500;
+            display: none;
+        }
+        .verification-steps {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 15px;
+            text-align: left;
+            display: none;
+        }
+        .verification-step {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            background: #cbd5e0;
+            border-radius: 50%;
+            margin-right: 8px;
+            transition: background-color 0.3s;
+        }
+        .step-dot.active {
+            background: #2563eb;
+        }
+        .step-dot.complete {
+            background: #48bb78;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>bread.mc0.ddns-ip.net</h1>
+        <div class="challenge-box">
+            <div class="checkbox-container" id="checkboxContainer">
+                <input type="checkbox" id="iamhuman" onclick="startVerification()">
+                <label for="iamhuman">点击确认您是真人</label>
+            </div>
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <div class="loading-spinner" id="loadingSpinner" style="display: none;"></div>
+            <p id="verificationStatus" style="display: none;">正在验证您是否是真人。这可能需要几秒钟时间。</p>
+            <div class="verification-steps" id="verificationSteps">
+                <div class="verification-step">
+                    <div class="step-dot" id="step1Dot"></div>
+                    <span>检查浏览器环境</span>
+                </div>
+                <div class="verification-step">
+                    <div class="step-dot" id="step2Dot"></div>
+                    <span>验证请求合法性</span>
+                </div>
+                <div class="verification-step">
+                    <div class="step-dot" id="step3Dot"></div>
+                    <span>分析行为特征</span>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 20px;">继续之前，problog.999845.xyz 需要首先检查您的连接的安全性。</p>
+        <div class="cloudflare-logo">
+            <img src="https://www.cloudflare.com/img/logo-cloudflare.svg" alt="Cloudflare Logo" width="100">
+        </div>
+        <p style="font-size: 12px; color: #999; margin-top: 30px;">Ray ID: 96fee0fbf8c92ede</p>
+        <p style="font-size: 12px; color: #999;">性能和安全由Cloudflare提供</p>
+    </div>
+
+    <script>
+        let isVerifying = false;
+
+        function updateStep(stepNumber, status) {
+            const dot = document.getElementById(`step${stepNumber}Dot`);
+            if (status === 'active') {
+                dot.className = 'step-dot active';
+            } else if (status === 'complete') {
+                dot.className = 'step-dot complete';
+            }
+        }
+
+        function startVerification() {
+            if (isVerifying) return;
+            isVerifying = true;
+
+            const checkboxContainer = document.getElementById('checkboxContainer');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const verificationStatus = document.getElementById('verificationStatus');
+            const verificationSteps = document.getElementById('verificationSteps');
+            const progressBar = document.getElementById('progressBar');
+            const progressBarFill = document.getElementById('progressBarFill');
+            const iamhumanCheckbox = document.getElementById('iamhuman');
+
+            // 先显示加载动画1秒
+            loadingSpinner.style.display = 'block';
+            setTimeout(() => {
+                // 禁用复选框并显示验证界面
+                iamhumanCheckbox.disabled = true;
+                checkboxContainer.style.opacity = '0.7';
+                verificationStatus.style.display = 'block';
+                verificationStatus.innerText = '正在验证您的浏览器...';
+                verificationSteps.style.display = 'block';
+                progressBar.style.display = 'block';
+                progressBarFill.style.width = '0%';
+
+                // 开始验证流程
+                let currentStep = 1;
+                const totalSteps = 3;
+                const stepDuration = 800; // 每个步骤的持续时间
+
+                function processStep() {
+                    if (currentStep <= totalSteps) {
+                        updateStep(currentStep, 'active');
+                        progressBarFill.style.width = `${(currentStep / totalSteps) * 100}%`;
+
+                        // 更新验证状态文本
+                        switch(currentStep) {
+                            case 1:
+                                verificationStatus.innerText = '正在检查浏览器环境...';
+                                break;
+                            case 2:
+                                verificationStatus.innerText = '正在验证请求合法性...';
+                                break;
+                            case 3:
+                                verificationStatus.innerText = '正在分析行为特征...';
+                                break;
+                        }
+
+                        setTimeout(() => {
+                            updateStep(currentStep, 'complete');
+                            currentStep++;
+                            if (currentStep <= totalSteps) {
+                                setTimeout(processStep, 200); // 添加步骤之间的短暂延迟
+                            } else {
+                                setTimeout(completeVerification, 300);
+                            }
+                        }, stepDuration);
+                    }
+                }
+
+                function completeVerification() {
+                    // 随机模拟成功或失败，成功率提高到80%
+                    const isSuccess = Math.random() > 0.2;
+
+                    if (isSuccess) {
+                        verificationStatus.innerText = '✓ 验证通过！正在重定向...';
+                        verificationStatus.style.color = '#48bb78';
+                        progressBarFill.style.backgroundColor = '#48bb78';
+                        // 成功后2秒跳转到indexold.html
+                        setTimeout(() => {
+                            window.location.href = 'indexold.html';
+                        }, 2000);
+                    } else {
+                        verificationStatus.innerText = '× 验证失败，请重试';
+                        verificationStatus.style.color = '#e53e3e';
+                        progressBarFill.style.backgroundColor = '#e53e3e';
+                        // 重置验证步骤
+                        for (let i = 1; i <= totalSteps; i++) {
+                            document.getElementById(`step${i}Dot`).className = 'step-dot';
+                        }
+                        // 允许重试
+                        iamhumanCheckbox.disabled = false;
+                        iamhumanCheckbox.checked = false;
+                        checkboxContainer.style.opacity = '1';
+                        isVerifying = false;
+                    }
+                    loadingSpinner.style.display = 'none';
+                }
+
+                processStep();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
